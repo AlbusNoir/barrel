@@ -20,6 +20,6 @@ Currently this only works properly on Linux. Something in the files' encoding me
 TODO:  
 [ ] Decrypter? Idk if this can be handled in file or not  
 [ ] Take terms, spit out to file term | page  
-[ ] Combine -> combine all pages to make term | book,page book,page 
+[ ] Combine -> combine all pages to make term | book,page book,page  
 [ ] Figure out how to make Windows compatible
 
