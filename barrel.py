@@ -3,51 +3,14 @@ import argparse
 import sys
 import fitz # PyMuPDF
 
-# Fluff
-logo = r'''
-  ____ __ _ _
- /=//==//=/  \
-|=||==||=|    |
-|=||==||=|~-, |
-|=||==||=|^.`;|
- \=\\==\\=\`=.:
-  `"""""""`^-,`.
-           `.~,'
-          ',~^:,
-          `.^;`.
-           ^-.~=;.
-              `.^.:`.
-'''
-
-# Not fluff
-usage_fluff = """Barrel: A Semi-All-In-One SANS Index Tool
-Things barrel CAN do: 
-- Convert a PDF to text
-- Generate an index from said text file
-- Combine multiple index files into one
-Things barrel CANNOT do:
-- Generate an index from a PDF directly
-- Get an index perfectly (you will need to tailor the output. Some garbage slips through the cracks)
-- Cook you breakfast
-- Do your homework
-"""
-
-how_to = """How to use:
-1. Download your PDFs from here: https://www.sans.org/account/download-materials
-2. Decrypt your PDFs using a tool like qpdf or StirlingPDF
-3. Convert your PDF to text using the `convert` argument: python barrel.py convert -i <input.pdf> -o <output.pdf>
-4. Generate an index from the text file using the `index` argument: python barrel.py index -i <input.txt> -o <output.txt> -n <"your name">
-5. Tidy up the output file as needed, removing any unwanted entries or formatting issues. This cannot be automated.
-6. If you have multiple index files, combine them using the `combine` argument: python barrel.py combine <input1.txt> <input2.txt> <...> -o <output.txt>
-"""
 
 # Set up parser
-parser = argparse.ArgumentParser()
-parser.add_argument("-i", "--input-file", help="text file of SANS book")
-parser.add_argument("-o", "--output-file", help="output file of index")
-parser.add_argument("-n", "--student-name", help="full name of student")
-parser.add_argument("convert", action='store_true', help="convert PDF to text")
-parser.add_argument("combine", nargs='+', help="combine multiple index files into one")
+parser = argparse.ArgumentParser(description="Barrel: A Semi-All-In-One SANS Index Tool", formatter_class=argparse.RawTextHelpFormatter)
+parser.add_argument("-i", "--input-file", help="Use: -i <inputfile>. Required for: convert")
+parser.add_argument("-o", "--output-file", help="Use: -o <outputfile>. Required for: convert")
+parser.add_argument("-n", "--student-name", help="Your full name, as it appears in the index. Used as a delimiter for parsing index.")
+parser.add_argument("convert", action='store_true', help="Use: convert -i <input.pdf> -o <output.txt>")
+parser.add_argument("combine", nargs='*', help="Use: combine <input1.txt> <input2.txt> <input3.txt> ...")
 options = parser.parse_args(sys.argv[1:])
 
 # Check if the user wants to convert a PDF to text
@@ -68,37 +31,13 @@ if sys.argv[1] == 'convert':
         print(f"Error converting {options.input_file} to {options.output_file}: {e}")
     sys.exit(0)
 
-# Check if the user wants to combine index files
-'''if options.combine:
-    if not options.input_file or not options.output_file:
-        print("Please provide both input files (comma separated) and an output file for combining.")
-        sys.exit(1)
-    
-    input_files = options.input_file.split(',')
-    combined_index = set()
-    
-    for input_file in input_files:
-        try:
-            with open(input_file.strip(), "r", encoding='utf-8') as f:
-                for line in f:
-                    combined_index.add(line.strip())
-            print(f"Added entries from {input_file.strip()}")
-        except Exception as e:
-            print(f"Error reading {input_file.strip()}: {e}")
-    
-    with open(options.output_file, "w", encoding='utf-8') as f:
-        for entry in sorted(combined_index):
-            f.write(entry + "\n")
-    
-    print(f"Combined index written to {options.output_file}")
-    sys.exit(0)
-'''
-#if options.combine:
-args = sys.argv[2:]
+
+# Check if the user wants to combine index files:
 if sys.argv[1] == 'combine':
+    args = sys.argv[2:]
     if len(args) == 0:
         print("""Please provide input files (space separated)\n
-              Usage: python barrel.py combine -i file1.txt,file2.txt,file3.txt""")
+              Usage: python barrel.py combine file1.txt file2.txt file3.txt""")
         sys.exit(1)
 
     index = {}
@@ -128,8 +67,108 @@ if sys.argv[1] == 'combine':
     print(f"Combined index written to {f.name}")
     sys.exit(0)
 
+# The meat of the code: Generate an index from a text file
+if not options.input_file or not options.output_file or not options.student_name:
+    print("Please enter the required options.\nUsage: python barrel.py -i input.txt -o output.txt -n 'Your Name'")
+    sys.exit(1)
 
-if '__main__' not in __name__:
-    print(logo)
-    print(usage_fluff)
-    print(how_to)
+delimiter = f"Licensed To: {options.student_name}"
+
+# Get common English words. Using https://github.com/dwyl/english-words
+common_words = rq.get("https://raw.githubusercontent.com/dwyl/english-words/master/words.txt").text.split("\n")
+
+# Doubling up a little bit by using a file for some additional common words.
+common_words_file = 'common_words_large.txt'
+
+# Function to recursively strip given characters in a word. We're stripping most common symbols
+characters_to_strip = "|©$#*.@%^&{}<>()'\":,”“‘?;-•’—…[]!"
+phrases_to_strip = ["'s", "'re", "'ve", "'t", "[0]", "[1]", "[2]", "[3]", "[4]", "[5]", "[6]"]
+def strip_characters(word):
+    word_length = len(word)
+    word = word.replace("’", "'")
+    while True:
+        for phrase in phrases_to_strip:
+            if word.endswith(phrase):
+                word = word[:len(phrase)]
+        word = word.strip(characters_to_strip).rstrip(".")
+        if len(word) == word_length:
+            return word
+        else:
+            word_length = len(word)
+
+# Driver function to check if a word should be added to the index
+def word_is_eligible(word):
+    # Length check
+    if len(word) < 3:
+        return False
+    # Starts with number
+    if word[0].isdigit():
+        return False
+    # Not common English word, or a plural of a common word
+    if word.lower() in common_words or word.lower() + "s" in common_words:
+        return False
+    # same check but on file
+    with open(common_words_file, "r") as f:
+        if word.lower() in f or word.lower() + "s" in common_words:
+            return False
+    # Not URL
+    if word.startswith("http://") or word.startswith("https://"):
+        return False
+    # If we reach this point, the word is eligible
+    return True
+
+# Get pages in text file
+with open(options.input_file, "r", encoding='utf-8') as f:
+    data = f.read()
+    pages = data.split(delimiter)[1:]
+
+# Get words per page
+index = {}        # store page number and words on page
+total_words = []  # Stores all words
+for page_idx, page in enumerate(pages):
+    # Recursively strip whitespace from newline and tabs and replace with singular space
+    page = page.replace("\n", " ").replace("\t", " ")
+    page_len = len(page)
+    while True:
+        page = page.replace("  ", " ")
+        if len(page) == page_len:
+            break
+        else:
+            page_len = len(page)
+    # Trim whitespace
+    page = page.strip()
+    # Get words
+    words = page.split(" ")
+    long_words = []
+    for word in words:
+        # Strip out some punctuation
+        word = strip_characters(word).lower()
+        # If the word made it past the checks, append to index
+        if word_is_eligible(word):
+            total_words.append(word)
+            long_words.append(word)
+    index[page_idx] = long_words
+
+# Get results
+results = []
+for word in set(total_words):
+    # Get pages where the word appears
+    pages_word_is_in = []
+    for page in index.keys():
+        if word in index[page]:
+            pages_word_is_in.append(str(page))
+    
+    if len(pages_word_is_in) < 15:
+        joined_pages = ', '.join(pages_word_is_in)
+        # Only append if not page number
+        if word != joined_pages:
+            results.append(f"{word}: {', '.join(pages_word_is_in)}")
+
+# Finally, sort output and write to file
+results.sort(key=str.casefold)
+
+with open(options.output_file, "w", encoding='utf-8') as f:
+    for result in results:
+        f.write(result + "\n")
+
+print(f"Written index to {options.output_file}")

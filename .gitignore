@@ -2,6 +2,6 @@
 577_TEST/  
 
 # Also don't push my testing
-TEST/
+TEST*
 combined_index.txt
-TEST2/
+OLD/
