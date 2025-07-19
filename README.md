@@ -14,12 +14,8 @@
 
 Barrel is a SANs indexer tool (can probably be used for other stuff too but is mainly aimed at SANs)  
 
-Currently this only works properly on Linux. Something in the files' encoding messes up Windows' ability to read the file.
 
-
-TODO:  
-[ ] Decrypter? Idk if this can be handled in file or not  
+TODO:   
 [ ] Take terms, spit out to file term | page  
 [ ] Combine -> combine all pages to make term | book,page book,page  
-[ ] Figure out how to make Windows compatible
 

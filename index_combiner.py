@@ -3,11 +3,7 @@ import sys
 # Parse CLI flags
 args = sys.argv[1:]
 if len(args) == 0:
-<<<<<<< HEAD
     print("Usage: 'python index_combiner.py index1.txt index2.txt index3.txt ... > output_file'")
-=======
-    print("Usage: 'python index_combiner.py index1.txt index2.txt index3.txt' etc.")
->>>>>>> 8acc4f77112e907fd3b4345eee7e7736c1773a7a
 
 # Get file data
 index = {}
