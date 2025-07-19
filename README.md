@@ -27,7 +27,8 @@
 - Get an index perfectly (You will likely need to tailor the output. This is an unfortunate limitation of the tool in its current state)
 - Cook you breakfast
 - Your homework  
-- Guarantee a passing grade on whatever exam you use this to prepare for
+- Guarantee a passing grade on whatever exam you use this to prepare for  
+- Explain why this project is named `barrel`  
 ---
 
 #### Setup and Installation:  
@@ -42,15 +43,16 @@
 1. Download your PDFs from here: https://www.sans.org/account/download-materials
 2. Decrypt your PDFs using a tool like [qpdf](https://github.com/qpdf/qpdf) or [StirlingPDF](https://www.stirlingpdf.com/) (or Adobe if you have that)
 3. Convert your PDF to text using the `convert` argument: `python barrel.py convert -i <input.pdf> -o <output.txt>`
-4. Generate an index from the text file: `python barrel.py -i <input.txt> -o <output.txt> -n <"your name">`
+4. Generate an index using the `index` argument: `python barrel.py index -i <input.txt> -o <output.txt> -n <"your name">`
 5. Tidy up the output file as needed, removing any unwanted entries. I tried to account for most common words and such, but some garbage may still slip through.
 6. If you have multiple index files, combine them using the `combine` argument: `python barrel.py combine <input1.txt> <input2.txt> <input3.txt> ...` No need to specify output file, it will be written to combined.txt  
 
 ---
 
 #### Future state and possible TODOs:  
-[ ] - Migrate the main driver functions into an `index` function so that falls in line with the rest of the arguments (right now it's just the default, there is no argument for it)  
 [ ] - Probably not a clean way to do this, but can the decryption part be done in file?? Idk  
+[ ] - Maybe allow for doing bulk conversion via an input file??  
+[ ] - Maybe allow for bulk indexing too??  
 [ ] - Probably some other janitorial cleaning needed as well
 
 ---  
