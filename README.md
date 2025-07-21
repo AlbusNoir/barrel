@@ -57,7 +57,7 @@
 
 ---  
 
-*Special thanks to [George O](https://github.com/Ge0rg3) for the original inspiration for this. This is largely based on their work and is really just an expansion of it. You can view their original project [here](https://github.com/Ge0rg3/sans-index-creator).*
+*Special thanks to [George O](https://github.com/Ge0rg3) for the original inspiration for this. This is based on their original work and is really just an expansion of it. You can view their original project [here](https://github.com/Ge0rg3/sans-index-creator).*
 
 
 
