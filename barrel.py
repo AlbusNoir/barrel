@@ -84,7 +84,7 @@ if sys.argv[1] == 'index':
     common_words_file = 'common_words_large.txt'
 
     # Function to recursively strip given characters in a word. We're stripping most common symbols
-    characters_to_strip = "+=|©$#*.@%^&{}<>()'\":,”“‘?;-•’—…[]!"
+    characters_to_strip = "+=©$#*@^&{}<>()'\":,”“‘?;-•’—…[]!"
     phrases_to_strip = ["'s", "'re", "'ve", "'t", "[0]", "[1]", "[2]", "[3]", "[4]", "[5]", "[6]"]
     def strip_characters(word):
         word_length = len(word)
